@@ -1,5 +1,4 @@
 {
-  //Vscode中配置路径联想提示
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
