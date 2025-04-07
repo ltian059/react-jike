@@ -2,15 +2,22 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { axios } from '@/utils'
 
+/* token的持久化:
+    1. 在登录成功后, 将token存入localStorage 和 redux中
+    2. 在redux初始化时, 从localStorage中读取token; 这样就实现了token的持久化
+*/
+
+
 /* 和用户相关的状态管理 */
 export const userSlice = createSlice({
     name: 'user',
     // 初始化数据状态
     initialState: {
-        token: "",
+        token: localStorage.getItem('token') || "",
     },
     reducers: {
         setToken: (state, action) => {
+            localStorage.setItem('token', action.payload)
             state.token = action.payload
         },
     }
