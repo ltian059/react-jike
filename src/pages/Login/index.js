@@ -5,7 +5,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { fetchLoginToken } from '@/store/modules/userSlice'
 import { useNavigate } from 'react-router'
 import { message } from 'antd';
-
+import { useEffect } from 'react';
+import { setLoginRequestStatus, setErrorMessage } from '@/store/modules/userSlice';
 // 手机号校验规则
 const phoneRules = [
     //多条校验逻辑，串行校验，一条不通过，不会校验下一条
@@ -22,23 +23,34 @@ const initialValues = {
 }
 
 const Login = () => {
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const { loginRequestStatus, errorMessage } = useSelector(state => state.user);
+
+    // 监听登录状态变化
+    useEffect(() => {
+        if (loginRequestStatus === 'succeeded') {
+            message.destroy();
+            message.success('登录成功');
+            setTimeout(() => {
+                navigate('/');
+                message.destroy();
+            }, 1500);
+        } else if (loginRequestStatus === 'failed') {
+            message.destroy();
+            message.error('登录失败, ' + errorMessage);
+            dispatch(setLoginRequestStatus('idle'));
+            dispatch(setErrorMessage(''));
+        }
+    }, [loginRequestStatus, errorMessage, navigate, dispatch]);
+
     // 提交表单且数据验证成功后触发
     const onFinish = async (values) => {
         console.log('登录表单数据', values);
         //调用异步action
         await dispatch(fetchLoginToken(values));
-        //提示登录成功
-        message.success('登录成功');
-        //跳转到首页
-        setTimeout(() => {
-            navigate('/');
-        }, 1000);
     }
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
 
-    //获取redux中的全局token
-    const { token } = useSelector(state => state.user);
     return (
         <div className="login">
             <Card className="login-container">
