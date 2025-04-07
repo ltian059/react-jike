@@ -1,9 +1,10 @@
 import './index.scss'
 import { Card, Form, Input, Button } from 'antd'
 import logo from '@/assets/logo.png'
-import { axios } from '@/utils'
 import { useDispatch, useSelector } from 'react-redux'
-
+import { fetchLoginToken } from '@/store/modules/userSlice'
+import { useNavigate } from 'react-router'
+import { message } from 'antd';
 
 // 手机号校验规则
 const phoneRules = [
@@ -19,14 +20,23 @@ const initialValues = {
     mobile: '13800000002',
     code: '246810'
 }
-// 提交表单且数据验证成功后触发
-const onFinish = (values) => {
-    console.log(values)
-    //调用登录接口
-}
 
 const Login = () => {
+    // 提交表单且数据验证成功后触发
+    const onFinish = async (values) => {
+        console.log('登录表单数据', values);
+        //调用异步action
+        await dispatch(fetchLoginToken(values));
+        //提示登录成功
+        message.success('登录成功');
+        //跳转到首页
+        setTimeout(() => {
+            navigate('/');
+        }, 1000);
+    }
     const dispatch = useDispatch();
+    const navigate = useNavigate();
+
     //获取redux中的全局token
     const { token } = useSelector(state => state.user);
     return (
