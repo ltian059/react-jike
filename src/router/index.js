@@ -1,6 +1,6 @@
 import { createBrowserRouter, } from "react-router";
-import Login from "../pages/Login";
-import Layout from "../pages/Layout";
+import Login from "@/pages/Login";
+import Layout from "@/pages/Layout";
 
 
 
