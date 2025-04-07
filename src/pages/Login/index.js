@@ -2,6 +2,7 @@ import './index.scss'
 import { Card, Form, Input, Button } from 'antd'
 import logo from '@/assets/logo.png'
 import { axios } from '@/utils'
+import { useDispatch, useSelector } from 'react-redux'
 
 
 // 手机号校验规则
@@ -18,13 +19,16 @@ const initialValues = {
     mobile: '13800000002',
     code: '246810'
 }
-
 // 提交表单且数据验证成功后触发
 const onFinish = (values) => {
     console.log(values)
     //调用登录接口
 }
+
 const Login = () => {
+    const dispatch = useDispatch();
+    //获取redux中的全局token
+    const { token } = useSelector(state => state.user);
     return (
         <div className="login">
             <Card className="login-container">
