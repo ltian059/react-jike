@@ -16,8 +16,10 @@ export const userSlice = createSlice({
     // 初始化数据状态
     initialState: {
         loginRequestStatus: 'idle',
+        userInfoRequestStatus: 'idle',
         token: localStorage.getItem('token') || "",
         errorMessage: "",
+        userInfo: {},
     },
     reducers: {
         setErrorMessage: (state, action) => {
@@ -26,21 +28,24 @@ export const userSlice = createSlice({
         setLoginRequestStatus: (state, action) => {
             state.loginRequestStatus = action.payload;
         },
+        setUserInfo: (state, action) => {
+            state.userInfo = action.payload;
+        },
+        setUserInfoRequestStatus: (state, action) => {
+            state.userInfoRequestStatus = action.payload;
+        },
     },
-
     //使用extraReducers来响应在切片外部定义的异步action操作
     extraReducers: (builder) => {
         builder
             //用来处理fetchLoginToken异步请求的三种状态, user/fetchLoginToken/pending
             .addCase(fetchLoginToken.pending, (state, action) => {
-                console.log('登录中, 正在发送请求');
                 state.loginRequestStatus = 'pending';
                 message.loading('登录中...');
             })
             //user/fetchLoginToken/fulfilled
             .addCase(fetchLoginToken.fulfilled, (state, action) => {
                 state.loginRequestStatus = 'succeeded';
-                // console.log('登录成功, 获取到返回值data', action.payload);
                 state.token = action.payload.token;
                 setLocalStorageToken(state.token);
                 state.errorMessage = "";
@@ -48,14 +53,26 @@ export const userSlice = createSlice({
             // user/fetchLoginToken/rejected
             .addCase(fetchLoginToken.rejected, (state, action) => {
                 state.loginRequestStatus = 'failed';
-                console.log('登录失败, 获取到返回值data', action);
                 state.errorMessage = action.payload.message;
-            });
+            })
+            /*----------------- 获取用户信息的reducers-----------------*/
+            .addCase(fetchUserInfo.pending, (state, action) => {
+                state.userInfoRequestStatus = 'pending';
+                state.userInfo.name = '用户信息加载中...';
+            })
+            .addCase(fetchUserInfo.fulfilled, (state, action) => {
+                state.userInfoRequestStatus = 'succeeded';
+                state.userInfo = action.payload;
+            })
+            .addCase(fetchUserInfo.rejected, (state, action) => {
+                state.userInfoRequestStatus = 'failed';
+                state.errorMessage = action.payload.message;
+            })
     }
 })
 
 // Action creators are generated for each case reducer function
-export const { setToken, setErrorMessage, setLoginRequestStatus } = userSlice.actions
+export const { setErrorMessage, setLoginRequestStatus, setUserInfo, setUserInfoRequestStatus } = userSlice.actions
 export default userSlice.reducer
 
 // 封装异步action
@@ -65,6 +82,7 @@ export default userSlice.reducer
     成功后会触发 fulfilled 状态, user/fetchLoginToken/fulfilled
     失败后会触发 rejected 状态, user/fetchLoginToken/rejected
 */
+//异步action: 登录 获取token
 const fetchLoginToken = createAsyncThunk('user/fetchLoginToken', async (data, { rejectWithValue }) => {
     try {
         const res = await axios.post('/v1_0/authorizations', data);
@@ -72,7 +90,17 @@ const fetchLoginToken = createAsyncThunk('user/fetchLoginToken', async (data, { 
     } catch (error) {
         return rejectWithValue(error.response.data);
     }
-
 })
 
-export { fetchLoginToken }
+//2. 异步action: 使用token获取用户信息
+const fetchUserInfo = createAsyncThunk('user/fetchUserInfo', async (data, { rejectWithValue }) => {
+    try {
+        const res = await axios.get('/v1_0/user/profile');
+        return res.data; // 返回值会作为action.payload传递给reducers
+    } catch (error) {
+        return rejectWithValue(error.response.data);
+    }
+})
+
+
+export { fetchLoginToken, fetchUserInfo }
