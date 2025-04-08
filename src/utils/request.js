@@ -7,7 +7,6 @@
         4.1 提取数据
 */
 import defaultAxios from "axios";
-import { useSelector } from "react-redux";
 import { getLocalStorageToken } from './token'
 
 //获取redux中的全局token
@@ -16,12 +15,13 @@ const axios = defaultAxios.create({
     timeout: 5000 // 5秒超时
 })
 
-//TODO 添加请求拦截器,统一添加请求头token
-// 添加请求拦截器
+// 添加请求拦截器,统一添加请求头token
 axios.interceptors.request.use(function (config) {
     // 在发送请求之前做些什么
-    config.headers.Authorization = "Bearer " + getLocalStorageToken();
-
+    const token = getLocalStorageToken();
+    if (token) {
+        config.headers.Authorization = "Bearer " + token;
+    }
     return config;
 }, function (error) {
     // 对请求错误做些什么
