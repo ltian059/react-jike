@@ -12,10 +12,12 @@ import {
 import { PlusOutlined } from '@ant-design/icons'
 import { Link } from 'react-router'
 import './index.scss'
+import { useEffect, useRef } from 'react';
+import Editor from './components/Editor';
 
 const { Option } = Select
-
 const Publish = () => {
+    const editorRef = useRef(null);
     return (
         <div className="publish">
             <Card
@@ -54,6 +56,7 @@ const Publish = () => {
                         rules={[{ required: true, message: '请输入文章内容' }]}
                     >
                         {/* 富文本编辑器 */}
+                        <Editor ref={editorRef} />
                     </Form.Item>
 
                     <Form.Item wrapperCol={{ offset: 4 }}>
