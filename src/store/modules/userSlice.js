@@ -4,6 +4,7 @@ import { axios } from '@/utils'
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import { message } from 'antd';
 import { removeLocalStorageToken, setLocalStorageToken } from '@/utils/token'
+import { loginAPI, getUserInfoAPI } from '@/apis/user';
 /* token的持久化:
     1. 在登录成功后, 将token存入localStorage 和 redux中
     2. 在redux初始化时, 从localStorage中读取token; 这样就实现了token的持久化
@@ -106,7 +107,7 @@ export default userSlice.reducer
 //异步action: 登录 获取token
 const fetchLoginToken = createAsyncThunk('user/fetchLoginToken', async (data, { rejectWithValue }) => {
     try {
-        const res = await axios.post('/v1_0/authorizations', data);
+        const res = await loginAPI(data);
         return res.data; // 返回值会作为action.payload传递给reducers
     } catch (error) {
         return rejectWithValue(error.response.data);
@@ -116,7 +117,7 @@ const fetchLoginToken = createAsyncThunk('user/fetchLoginToken', async (data, { 
 //2. 异步action: 使用token获取用户信息
 const fetchUserInfo = createAsyncThunk('user/fetchUserInfo', async (data, { rejectWithValue }) => {
     try {
-        const res = await axios.get('/v1_0/user/profile');
+        const res = await getUserInfoAPI();
         return res.data; // 返回值会作为action.payload传递给reducers
     } catch (error) {
         return rejectWithValue(error.response.status);
