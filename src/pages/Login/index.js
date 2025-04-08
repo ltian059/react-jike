@@ -34,8 +34,8 @@ const Login = () => {
             message.success('登录成功');
             dispatch(setLoginRequestStatus('idle'));
             setTimeout(() => {
-                navigate('/');
                 message.destroy();
+                navigate('/');
             }, 1500);
         } else if (loginRequestStatus === 'failed') {
             message.destroy();
