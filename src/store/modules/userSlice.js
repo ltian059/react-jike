@@ -16,6 +16,7 @@ const initialState = {
     userInfoRequestStatus: 'idle',
     token: localStorage.getItem('token') || "",
     errorMessage: "",
+    responseStatus: 0,
     userInfo: {},
 }
 export const userSlice = createSlice({
@@ -39,14 +40,15 @@ export const userSlice = createSlice({
             state.userInfoRequestStatus = action.payload;
         },
         onLogout: (state, action) => {
-            // 不能直接 state = initial 因为这只会替换函数内的局部变量，不会修改实际的 Redux 状态
-            // 在 Redux 中，需要直接修改 state 对象的属性来更新状态
+            // 清除本地存储的token
             removeLocalStorageToken();
-            state.token = "";
-            state.userInfo = {};
-            state.loginRequestStatus = 'idle';
-            state.userInfoRequestStatus = 'idle';
-            state.errorMessage = "";
+            // 重置所有状态到初始值
+            return {
+                ...initialState,
+                token: "",
+                userInfoRequestStatus: 'succeeded', // 设置用户信息请求状态为成功，防止退出时重新获取用户信息
+                loginRequestStatus: 'idle'
+            };
         },
     },
     //使用extraReducers来响应在切片外部定义的异步action操作
@@ -56,6 +58,11 @@ export const userSlice = createSlice({
             .addCase(fetchLoginToken.pending, (state, action) => {
                 state.loginRequestStatus = 'pending';
                 message.loading('登录中...');
+                state.isLogout = false;
+                state.userInfoRequestStatus = 'idle'; // 只要发起登录请求，就要重置用户信息
+                state.userInfo = {};
+                removeLocalStorageToken();
+                state.token = "";
             })
             //user/fetchLoginToken/fulfilled
             .addCase(fetchLoginToken.fulfilled, (state, action) => {
@@ -80,7 +87,7 @@ export const userSlice = createSlice({
             })
             .addCase(fetchUserInfo.rejected, (state, action) => {
                 state.userInfoRequestStatus = 'failed';
-                state.errorMessage = action.payload.message;
+                state.responseStatus = action.payload;
             })
     }
 })
@@ -112,7 +119,7 @@ const fetchUserInfo = createAsyncThunk('user/fetchUserInfo', async (data, { reje
         const res = await axios.get('/v1_0/user/profile');
         return res.data; // 返回值会作为action.payload传递给reducers
     } catch (error) {
-        return rejectWithValue(error.response.data);
+        return rejectWithValue(error.response.status);
     }
 })
 

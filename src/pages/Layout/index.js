@@ -9,9 +9,8 @@ import { Outlet, useNavigate, useLocation } from 'react-router'
 import './index.scss'
 import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchUserInfo, setUserInfoRequestStatus, setErrorMessage, setUserInfo, onLogout } from '@/store/modules/userSlice'
+import { fetchUserInfo, setUserInfoRequestStatus, setErrorMessage, onLogout } from '@/store/modules/userSlice'
 import { message } from 'antd'
-import { removeLocalStorageToken } from '@/utils'
 const { Header, Sider } = Layout
 
 const items = [
@@ -53,9 +52,9 @@ const GeekLayout = () => {
 
     // 获取用户信息
     const dispatch = useDispatch();
-    const { userInfo, userInfoRequestStatus } = useSelector(state => state.user);
+    const { userInfo, userInfoRequestStatus, responseStatus } = useSelector(state => state.user);
     const [retryCount, setRetryCount] = useState(0);
-    // 获取用户信息并处理状态
+    // 异步action获取用户信息并处理状态
     useEffect(() => {
         // 只在初始化和状态为 idle 时获取用户信息
         if (userInfoRequestStatus === 'idle') {
@@ -65,7 +64,7 @@ const GeekLayout = () => {
         if (userInfoRequestStatus === 'succeeded') {
             // 获取用户信息成功，只清除错误信息
             dispatch(setErrorMessage(''));
-        } else if (userInfoRequestStatus === 'failed') {
+        } else if (userInfoRequestStatus === 'failed' && responseStatus !== 401) {
             if (retryCount <= 3) {
                 // 获取用户信息失败，重新尝试获取
                 setTimeout(() => {
@@ -78,13 +77,13 @@ const GeekLayout = () => {
                 message.error("获取用户信息失败, 请稍后再试");
             }
         }
-    }, [userInfoRequestStatus, dispatch, retryCount]);
+    }, [userInfoRequestStatus, dispatch, retryCount, responseStatus]);
 
     // 退出登录逻辑
     const handleLogout = () => {
-        // 1. 直接调用onLogout，清除所有用户相关的信息
+        // 1. 清除所有用户相关的信息
         dispatch(onLogout());
-        // 3. 返回登录页
+        // 2. 返回登录页
         navigate('/login');
     }
     return (

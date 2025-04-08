@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router'
 import { message } from 'antd';
 import { useEffect } from 'react';
 import { setLoginRequestStatus, setErrorMessage } from '@/store/modules/userSlice';
+import { debounce } from 'lodash';
 // 手机号校验规则
 const phoneRules = [
     //多条校验逻辑，串行校验，一条不通过，不会校验下一条
@@ -57,7 +58,7 @@ const Login = () => {
             <Card className="login-container">
                 <img className="login-logo" src={logo} alt="" />
                 {/* 登录表单 */}
-                <Form onFinish={onFinish} initialValues={initialValues}>
+                <Form onFinish={debounce(onFinish, 500)} initialValues={initialValues}>
                     <Form.Item
                         name="mobile"
                         rules={phoneRules}

@@ -7,8 +7,9 @@
         4.1 提取数据
 */
 import defaultAxios from "axios";
-import { getLocalStorageToken } from './token'
-
+import { getLocalStorageToken, removeLocalStorageToken } from './token'
+import { message } from "antd";
+import router from "@/router";
 //获取redux中的全局token
 const axios = defaultAxios.create({
     baseURL: 'http://geek.itheima.net',
@@ -37,6 +38,15 @@ axios.interceptors.response.use(function (response) {
 }, function (error) {
     // 超出 2xx 范围的状态码都会触发该函数。
     // 对响应错误做点什么
+
+    //401错误码，表示未授权，需要重新登录
+    if (error.response.status === 401) {
+        //身份状态过期，需要重新登录
+        setTimeout(() => {
+            removeLocalStorageToken();
+            router.navigate('/login');
+        }, 500);
+    }
     return Promise.reject(error);
 });
 
