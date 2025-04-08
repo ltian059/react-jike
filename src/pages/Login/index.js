@@ -32,6 +32,7 @@ const Login = () => {
         if (loginRequestStatus === 'succeeded') {
             message.destroy();
             message.success('登录成功');
+            dispatch(setLoginRequestStatus('idle'));
             setTimeout(() => {
                 navigate('/');
                 message.destroy();

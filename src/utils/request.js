@@ -8,6 +8,7 @@
 */
 import defaultAxios from "axios";
 import { useSelector } from "react-redux";
+import { getLocalStorageToken } from './token'
 
 //获取redux中的全局token
 const axios = defaultAxios.create({
@@ -19,9 +20,8 @@ const axios = defaultAxios.create({
 // 添加请求拦截器
 axios.interceptors.request.use(function (config) {
     // 在发送请求之前做些什么
-    config.headers = {
-        Authorization: `Bearer `
-    }
+    config.headers.Authorization = "Bearer " + getLocalStorageToken();
+
     return config;
 }, function (error) {
     // 对请求错误做些什么

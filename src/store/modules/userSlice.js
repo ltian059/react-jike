@@ -3,6 +3,7 @@ import { createSlice } from '@reduxjs/toolkit'
 import { axios } from '@/utils'
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import { message } from 'antd';
+import { setLocalStorageToken } from '@/utils/token'
 /* token的持久化:
     1. 在登录成功后, 将token存入localStorage 和 redux中
     2. 在redux初始化时, 从localStorage中读取token; 这样就实现了token的持久化
@@ -19,9 +20,6 @@ export const userSlice = createSlice({
         errorMessage: "",
     },
     reducers: {
-        setToken: (state, action) => {
-            state.token = action.payload;
-        },
         setErrorMessage: (state, action) => {
             state.errorMessage = action.payload;
         },
@@ -44,14 +42,14 @@ export const userSlice = createSlice({
                 state.loginRequestStatus = 'succeeded';
                 // console.log('登录成功, 获取到返回值data', action.payload);
                 state.token = action.payload.token;
-                localStorage.setItem('token', state.token);
+                setLocalStorageToken(state.token);
                 state.errorMessage = "";
             })
             // user/fetchLoginToken/rejected
             .addCase(fetchLoginToken.rejected, (state, action) => {
                 state.loginRequestStatus = 'failed';
                 console.log('登录失败, 获取到返回值data', action);
-                state.errorMessage = action.payload.data.message;
+                state.errorMessage = action.payload.message;
             });
     }
 })
@@ -72,7 +70,7 @@ const fetchLoginToken = createAsyncThunk('user/fetchLoginToken', async (data, { 
         const res = await axios.post('/v1_0/authorizations', data);
         return res.data; // 返回值会作为action.payload传递给reducers
     } catch (error) {
-        return rejectWithValue(error.response);
+        return rejectWithValue(error.response.data);
     }
 
 })
