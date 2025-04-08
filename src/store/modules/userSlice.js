@@ -3,7 +3,7 @@ import { createSlice } from '@reduxjs/toolkit'
 import { axios } from '@/utils'
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import { message } from 'antd';
-import { setLocalStorageToken } from '@/utils/token'
+import { removeLocalStorageToken, setLocalStorageToken } from '@/utils/token'
 /* token的持久化:
     1. 在登录成功后, 将token存入localStorage 和 redux中
     2. 在redux初始化时, 从localStorage中读取token; 这样就实现了token的持久化
@@ -11,17 +11,21 @@ import { setLocalStorageToken } from '@/utils/token'
 
 
 /* 和用户相关的状态管理 */
+const initialState = {
+    loginRequestStatus: 'idle',
+    userInfoRequestStatus: 'idle',
+    token: localStorage.getItem('token') || "",
+    errorMessage: "",
+    userInfo: {},
+}
 export const userSlice = createSlice({
     name: 'user',
     // 初始化数据状态
-    initialState: {
-        loginRequestStatus: 'idle',
-        userInfoRequestStatus: 'idle',
-        token: localStorage.getItem('token') || "",
-        errorMessage: "",
-        userInfo: {},
-    },
+    initialState: initialState,
     reducers: {
+        setToken: (state, action) => {
+            state.token = action.payload;
+        },
         setErrorMessage: (state, action) => {
             state.errorMessage = action.payload;
         },
@@ -33,6 +37,16 @@ export const userSlice = createSlice({
         },
         setUserInfoRequestStatus: (state, action) => {
             state.userInfoRequestStatus = action.payload;
+        },
+        onLogout: (state, action) => {
+            // 不能直接 state = initial 因为这只会替换函数内的局部变量，不会修改实际的 Redux 状态
+            // 在 Redux 中，需要直接修改 state 对象的属性来更新状态
+            removeLocalStorageToken();
+            state.token = "";
+            state.userInfo = {};
+            state.loginRequestStatus = 'idle';
+            state.userInfoRequestStatus = 'idle';
+            state.errorMessage = "";
         },
     },
     //使用extraReducers来响应在切片外部定义的异步action操作
@@ -72,7 +86,7 @@ export const userSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { setErrorMessage, setLoginRequestStatus, setUserInfo, setUserInfoRequestStatus } = userSlice.actions
+export const { setErrorMessage, setLoginRequestStatus, setUserInfo, setUserInfoRequestStatus, setToken, onLogout } = userSlice.actions
 export default userSlice.reducer
 
 // 封装异步action

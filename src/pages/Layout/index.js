@@ -9,8 +9,9 @@ import { Outlet, useNavigate, useLocation } from 'react-router'
 import './index.scss'
 import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchUserInfo, setUserInfoRequestStatus, setErrorMessage } from '@/store/modules/userSlice'
+import { fetchUserInfo, setUserInfoRequestStatus, setErrorMessage, setUserInfo, onLogout } from '@/store/modules/userSlice'
 import { message } from 'antd'
+import { removeLocalStorageToken } from '@/utils'
 const { Header, Sider } = Layout
 
 const items = [
@@ -79,6 +80,13 @@ const GeekLayout = () => {
         }
     }, [userInfoRequestStatus, dispatch, retryCount]);
 
+    // 退出登录逻辑
+    const handleLogout = () => {
+        // 1. 直接调用onLogout，清除所有用户相关的信息
+        dispatch(onLogout());
+        // 3. 返回登录页
+        navigate('/login');
+    }
     return (
         <Layout>
             <Header className="header">
@@ -86,7 +94,7 @@ const GeekLayout = () => {
                 <div className="user-info">
                     <span className="user-name">{userInfo.name}</span>
                     <span className="user-logout">
-                        <Popconfirm title="是否确认退出？" okText="退出" cancelText="取消">
+                        <Popconfirm title="是否确认退出？" okText="退出" cancelText="取消" onConfirm={handleLogout}>
                             <LogoutOutlined /> 退出
                         </Popconfirm>
                     </span>
