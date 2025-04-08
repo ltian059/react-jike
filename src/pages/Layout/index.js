@@ -5,9 +5,9 @@ import {
     EditOutlined,
     LogoutOutlined,
 } from '@ant-design/icons'
-import { Outlet, useNavigate } from 'react-router'
+import { Outlet, useNavigate, useLocation } from 'react-router'
 import './index.scss'
-
+import { useState, useEffect } from 'react'
 const { Header, Sider } = Layout
 
 const items = [
@@ -29,11 +29,23 @@ const items = [
 ]
 const GeekLayout = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+
     // Menu点击，二级路由跳转
     const handleMenuClick = (e) => {
+        if (!e?.key) {
+            console.warn('Invalid menu key');
+            return;
+        }
         navigate(e.key);
     }
-
+    // 使用 location.pathname 直接作为 selectedKey
+    /* 当路由变化时：
+        location.pathname 更新
+        React Router 触发组件重渲染
+        直接显示新的 location.pathname 
+    */
+    const selectedKey = location.pathname; // 
 
     return (
         <Layout>
@@ -54,6 +66,7 @@ const GeekLayout = () => {
                         mode="inline"
                         theme="dark"
                         defaultSelectedKeys={['/']}
+                        selectedKeys={[selectedKey]}
                         onClick={handleMenuClick}
                         items={items}
                         style={{ height: '100%', borderRight: 0 }}></Menu>
