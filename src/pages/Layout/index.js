@@ -13,22 +13,28 @@ const { Header, Sider } = Layout
 const items = [
     {
         label: '首页',
-        key: '1',
+        key: '/',
         icon: <HomeOutlined />,
     },
     {
         label: '文章管理',
-        key: '2',
+        key: '/article',
         icon: <DiffOutlined />,
     },
     {
         label: '创建文章',
-        key: '3',
+        key: '/publish',
         icon: <EditOutlined />,
     },
 ]
-
 const GeekLayout = () => {
+    const navigate = useNavigate();
+    // Menu点击，二级路由跳转
+    const handleMenuClick = (e) => {
+        navigate(e.key);
+    }
+
+
     return (
         <Layout>
             <Header className="header">
@@ -47,7 +53,8 @@ const GeekLayout = () => {
                     <Menu
                         mode="inline"
                         theme="dark"
-                        defaultSelectedKeys={['1']}
+                        defaultSelectedKeys={['/']}
+                        onClick={handleMenuClick}
                         items={items}
                         style={{ height: '100%', borderRight: 0 }}></Menu>
                 </Sider>
