@@ -64,7 +64,7 @@ const Publish = () => {
     // 上传图片回调
     const [fileList, setFileList] = useState([]);
     const handleUploadChange = (info) => {
-        console.log(info);
+        // console.log(info);
         if (info.file.status === 'error') {
             message.error(info.file.response.message);
         }
@@ -80,6 +80,11 @@ const Publish = () => {
     const [radioValue, setRadioValue] = useState(0);
     const onTypeChange = (e) => {
         setRadioValue(+e.target.value);
+    }
+    // 预览图片
+    const handlePreview = (file) => {
+        // 打开新页面预览图片
+        window.open(file.response.data.url);
     }
     return (
         <div className="publish">
@@ -136,6 +141,7 @@ const Publish = () => {
                                 listType="picture-card"
                                 showUploadList
                                 maxCount={radioValue}
+                                onPreview={handlePreview}
                                 onChange={handleUploadChange}
                             >
                                 <div style={{ marginTop: 8 }}>
