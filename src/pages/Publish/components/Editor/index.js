@@ -1,65 +1,56 @@
-import React, { forwardRef, useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import Quill from 'quill';
 import './index.scss'
 import 'quill/dist/quill.snow.css'
 // Editor is an uncontrolled React component
-const Editor = forwardRef(
-    ({ readOnly, defaultValue, onTextChange, onSelectionChange }, ref) => {
+
+/* 要在antd的form中使用，需要将editor组件修改为受控组件， 即带有value和onChange */
+const Editor =
+    ({ value, initialValues, onChange }) => {
         const containerRef = useRef(null);
-        const defaultValueRef = useRef(defaultValue);
-        const onTextChangeRef = useRef(onTextChange);
-        const onSelectionChangeRef = useRef(onSelectionChange);
+        const quillRef = useRef(null);
 
-        useLayoutEffect(() => {
-            onTextChangeRef.current = onTextChange;
-            onSelectionChangeRef.current = onSelectionChange;
-        });
 
+        // 初始化quill
         useEffect(() => {
-            ref.current?.enable(!readOnly);
-        }, [ref, readOnly]);
-
-        useEffect(() => {
-            console.log('[Editor Effect] Running effect. Ref object:', ref);
             const container = containerRef.current;
-            if (!container) {
-                console.error('[Editor Effect] Container ref is null!');
-                return;
-            }
             const editorContainer = container.appendChild(
                 container.ownerDocument.createElement('div'),
             );
             const quill = new Quill(editorContainer, {
                 theme: 'snow',
             });
-            console.log('[Editor Effect] Quill instance created:', quill);
-
-            console.log('[Editor Effect] Attempting to assign quill to ref.current');
-            ref.current = quill;
-            console.log('[Editor Effect] Assigned quill to ref.current. Current ref:', ref.current);
-
-            if (defaultValueRef.current) {
-                quill.setContents(defaultValueRef.current);
+            quillRef.current = quill;
+            if (initialValues) {
+                quill.setContents(initialValues);
             }
 
+            //监听文本变化
             quill.on(Quill.events.TEXT_CHANGE, (...args) => {
-                onTextChangeRef.current?.(...args);
-            });
+                // arg1: delta , arg2: oldDelta, arg3: source
+                const content = quill.getContents();
+                onChange?.(content);
+                // onTextChangeRef.current?.(quill.getContents());
 
-            quill.on(Quill.events.SELECTION_CHANGE, (...args) => {
-                onSelectionChangeRef.current?.(...args);
             });
 
             return () => {
-                console.log('[Editor Effect] Cleanup running. Setting ref.current to null.');
-                ref.current = null;
+                quillRef.current = null;
                 container.innerHTML = '';
             };
-        }, [ref]);
+        }, [initialValues]);
+
+        //监听外部数据变化，用于更新quill内容
+        useEffect(() => {
+            const quill = quillRef.current;
+            if (quill && value) {
+                if (JSON.stringify(value) !== JSON.stringify(quill.getContents()))
+                    quill.setContents(value);
+            }
+        }, [value]);
 
         return <div ref={containerRef}></div>;
-    },
-);
+    };
 
 Editor.displayName = 'Editor';
 

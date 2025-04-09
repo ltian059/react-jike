@@ -16,17 +16,9 @@ import { useEffect, useRef, useState } from 'react';
 import Editor from './components/Editor';
 import { Delta } from 'quill';
 import { getChannelsAPI } from '@/apis/article'
-const { Option } = Select
-const Publish = () => {
-    const editorRef = useRef();
-    const handleSubmit = (values) => {
-        const submissionData = {
-            ...values,
-            content: editorRef.current?.getContents()
-        };
-        console.log('Data to submit:', submissionData);
-    }
+import { submitArticleAPI } from '@/apis/article'
 
+const Publish = () => {
     //获取频道列表
     const [channels, setChannels] = useState([])
     useEffect(() => {
@@ -36,6 +28,38 @@ const Publish = () => {
         }
         getChannels();
     }, [])
+
+    // 提交表单回调
+    const handleSubmit = async (values) => {
+        //按照接口文档格式，处理表单数据
+        const { title, channel_id, content } = values;
+        const formData = {
+            title,
+            content: JSON.stringify(content),
+            cover: {
+                type: 0,
+                images: [],
+            },
+            channel_id,
+        }
+        console.log('Data to submit:', formData);
+        //调用接口提交表单
+        try {
+            const res = await submitArticleAPI(formData);
+            console.log(res);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const initialContent = new Delta()
+        .insert('Hello')
+        .insert('\n', { header: 1 })
+        .insert('Some ')
+        .insert('initial', { bold: true })
+        .insert(' ')
+        .insert('content', { underline: true })
+        .insert('\n');
 
     return (
         <div className="publish">
@@ -75,12 +99,12 @@ const Publish = () => {
                     </Form.Item>
                     <Form.Item
                         label="内容"
+                        rules={[{ required: true, message: '请输入文章内容' }]}
                         name="content"
-                        rules={[{ required: false, message: '请输入文章内容' }]}
+                        initialValue={initialContent}
                     >
-                        {/* TODO 富文本编辑器设置 */}
+                        {/* 富文本编辑器设置。它不是受控组件，要在Form.Item中使用需要进行改造 */}
                         <Editor
-                            ref={editorRef}
                         />
                     </Form.Item>
 
