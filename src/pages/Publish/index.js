@@ -32,14 +32,23 @@ const Publish = () => {
 
     // 提交表单回调
     const handleSubmit = async (values) => {
+        //校验封面类型是否符合要求
+        if (radioValue === 1 && fileList.length !== 1) {
+            message.error('单图封面，需要上传1张图片');
+            return;
+        }
+        if (radioValue === 3 && fileList.length !== 3) {
+            message.error('三图封面，需要上传3张图片');
+            return;
+        }
         //按照接口文档格式，处理表单数据
         const { title, channel_id, content } = values;
         const formData = {
             title,
             content: JSON.stringify(content),
             cover: {
-                type: 0,
-                images: [],
+                type: radioValue,
+                images: fileList.map(item => item.response.data.url),
             },
             channel_id,
         }
@@ -48,6 +57,9 @@ const Publish = () => {
         try {
             const res = await submitArticleAPI(formData);
             console.log(res);
+            //发布成功后，得到文章在服务器中的id
+            const id = res.data.id;
+            message.success('发布成功');
         } catch (error) {
             console.log(error);
         }
@@ -78,6 +90,12 @@ const Publish = () => {
     }
     // 控制封面图片类型：单图1、三图3、无图0
     const [radioValue, setRadioValue] = useState(0);
+    const uploadRef = useRef();
+    useEffect(() => {
+        if (radioValue === 0) {
+            setFileList([]);
+        }
+    }, [radioValue]);
     const onTypeChange = (e) => {
         setRadioValue(+e.target.value);
     }
@@ -136,6 +154,7 @@ const Publish = () => {
                          */}
                         {radioValue > 0 &&
                             <Upload
+                                ref={uploadRef}
                                 name='image'
                                 action='http://geek.itheima.net/v1_0/upload'
                                 listType="picture-card"
