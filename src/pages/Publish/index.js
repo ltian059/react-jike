@@ -7,7 +7,8 @@ import {
     Input,
     Upload,
     Space,
-    Select
+    Select,
+    message
 } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { Link } from 'react-router'
@@ -60,7 +61,21 @@ const Publish = () => {
         .insert(' ')
         .insert('content', { underline: true })
         .insert('\n');
-
+    // 上传图片回调
+    const [fileList, setFileList] = useState([]);
+    const handleUploadChange = (info) => {
+        console.log(info);
+        if (info.file.status === 'error') {
+            message.error(info.file.response.message);
+        }
+        if (info.file.status === 'removed') {
+            setFileList(info.fileList);
+        }
+        if (info.file.status === 'done') {
+            message.success('上传成功');
+            setFileList(info.fileList);
+        }
+    }
     return (
         <div className="publish">
             <Card
@@ -97,6 +112,31 @@ const Publish = () => {
                             placeholder="请选择文章频道" style={{ width: 200 }}>
                         </Select>
                     </Form.Item>
+
+                    <Form.Item label="封面">
+                        <Form.Item name="type">
+                            <Radio.Group>
+                                <Radio value={1}>单图</Radio>
+                                <Radio value={3}>三图</Radio>
+                                <Radio value={0}>无图</Radio>
+                            </Radio.Group>
+                        </Form.Item>
+                        {/* listType：决定文件选择框的外观样式
+                            showUploadList：决定是否显示上传列表
+                         */}
+                        <Upload
+                            name='image'
+                            action='http://geek.itheima.net/v1_0/upload'
+                            listType="picture-card"
+                            showUploadList
+                            onChange={handleUploadChange}
+                        >
+                            <div style={{ marginTop: 8 }}>
+                                <PlusOutlined />
+                            </div>
+                        </Upload>
+                    </Form.Item>
+
                     <Form.Item
                         label="内容"
                         rules={[{ required: true, message: '请输入文章内容' }]}
