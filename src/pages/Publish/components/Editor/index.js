@@ -20,15 +20,23 @@ const Editor = forwardRef(
         }, [ref, readOnly]);
 
         useEffect(() => {
+            console.log('[Editor Effect] Running effect. Ref object:', ref);
             const container = containerRef.current;
+            if (!container) {
+                console.error('[Editor Effect] Container ref is null!');
+                return;
+            }
             const editorContainer = container.appendChild(
                 container.ownerDocument.createElement('div'),
             );
             const quill = new Quill(editorContainer, {
                 theme: 'snow',
             });
+            console.log('[Editor Effect] Quill instance created:', quill);
 
+            console.log('[Editor Effect] Attempting to assign quill to ref.current');
             ref.current = quill;
+            console.log('[Editor Effect] Assigned quill to ref.current. Current ref:', ref.current);
 
             if (defaultValueRef.current) {
                 quill.setContents(defaultValueRef.current);
@@ -43,6 +51,7 @@ const Editor = forwardRef(
             });
 
             return () => {
+                console.log('[Editor Effect] Cleanup running. Setting ref.current to null.');
                 ref.current = null;
                 container.innerHTML = '';
             };

@@ -12,12 +12,31 @@ import {
 import { PlusOutlined } from '@ant-design/icons'
 import { Link } from 'react-router'
 import './index.scss'
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Editor from './components/Editor';
-
+import { Delta } from 'quill';
+import { getChannelsAPI } from '@/apis/article'
 const { Option } = Select
 const Publish = () => {
-    const editorRef = useRef(null);
+    const editorRef = useRef();
+    const handleSubmit = (values) => {
+        const submissionData = {
+            ...values,
+            content: editorRef.current?.getContents()
+        };
+        console.log('Data to submit:', submissionData);
+    }
+
+    //获取频道列表
+    const [channels, setChannels] = useState([])
+    useEffect(() => {
+        const getChannels = async () => {
+            const res = await getChannelsAPI()
+            setChannels(res.data.channels)
+        }
+        getChannels();
+    }, [])
+
     return (
         <div className="publish">
             <Card
@@ -33,6 +52,7 @@ const Publish = () => {
                     labelCol={{ span: 4 }}
                     wrapperCol={{ span: 16 }}
                     initialValues={{ type: 1 }}
+                    onFinish={handleSubmit}
                 >
                     <Form.Item
                         label="标题"
@@ -46,17 +66,22 @@ const Publish = () => {
                         name="channel_id"
                         rules={[{ required: true, message: '请选择文章频道' }]}
                     >
-                        <Select placeholder="请选择文章频道" style={{ width: 400 }}>
-                            <Option value={0}>推荐</Option>
+                        <Select
+                            // value属性用户选择之后，会自动被Form收集
+                            options={channels.map(channel => ({ label: channel.name, value: channel.id }))}
+                            placement='bottomLeft'
+                            placeholder="请选择文章频道" style={{ width: 200 }}>
                         </Select>
                     </Form.Item>
                     <Form.Item
                         label="内容"
                         name="content"
-                        rules={[{ required: true, message: '请输入文章内容' }]}
+                        rules={[{ required: false, message: '请输入文章内容' }]}
                     >
-                        {/* 富文本编辑器 */}
-                        <Editor ref={editorRef} />
+                        {/* TODO 富文本编辑器设置 */}
+                        <Editor
+                            ref={editorRef}
+                        />
                     </Form.Item>
 
                     <Form.Item wrapperCol={{ offset: 4 }}>
