@@ -76,6 +76,11 @@ const Publish = () => {
             setFileList(info.fileList);
         }
     }
+    // 控制封面图片类型：单图1、三图3、无图0
+    const [radioValue, setRadioValue] = useState(0);
+    const onTypeChange = (e) => {
+        setRadioValue(+e.target.value);
+    }
     return (
         <div className="publish">
             <Card
@@ -90,7 +95,7 @@ const Publish = () => {
                 <Form
                     labelCol={{ span: 4 }}
                     wrapperCol={{ span: 16 }}
-                    initialValues={{ type: 1 }}
+                    initialValues={{ type: radioValue }}
                     onFinish={handleSubmit}
                 >
                     <Form.Item
@@ -114,7 +119,7 @@ const Publish = () => {
                     </Form.Item>
 
                     <Form.Item label="封面">
-                        <Form.Item name="type">
+                        <Form.Item name="type" onChange={onTypeChange}>
                             <Radio.Group>
                                 <Radio value={1}>单图</Radio>
                                 <Radio value={3}>三图</Radio>
@@ -124,17 +129,21 @@ const Publish = () => {
                         {/* listType：决定文件选择框的外观样式
                             showUploadList：决定是否显示上传列表
                          */}
-                        <Upload
-                            name='image'
-                            action='http://geek.itheima.net/v1_0/upload'
-                            listType="picture-card"
-                            showUploadList
-                            onChange={handleUploadChange}
-                        >
-                            <div style={{ marginTop: 8 }}>
-                                <PlusOutlined />
-                            </div>
-                        </Upload>
+                        {radioValue > 0 &&
+                            <Upload
+                                name='image'
+                                action='http://geek.itheima.net/v1_0/upload'
+                                listType="picture-card"
+                                showUploadList
+                                maxCount={radioValue}
+                                onChange={handleUploadChange}
+                            >
+                                <div style={{ marginTop: 8 }}>
+                                    <PlusOutlined />
+                                </div>
+                            </Upload>
+
+                        }
                     </Form.Item>
 
                     <Form.Item
