@@ -6,6 +6,8 @@ import { Table, Tag, Space } from 'antd'
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import img404 from '@/assets/error.png'
 import { useChannel } from '@/hooks/useChannel'
+import { getArticleListAPI } from '@/apis/article'
+import { useEffect, useState } from 'react'
 const { Option } = Select
 const { RangePicker } = DatePicker
 /* 文章管理页面 */
@@ -79,6 +81,20 @@ const Article = () => {
         }
     ]
     const [channels] = useChannel();
+
+    //获取文章列表
+    const [articleList, setArticleList] = useState([]);
+    //文章总数
+    const [totalCount, setTotalCount] = useState(0);
+    useEffect(() => {
+        const getArticleList = async () => {
+            const res = await getArticleListAPI();
+            console.log(res);
+            setArticleList(res.data.results);
+            setTotalCount(res.data.total_count);
+        }
+        getArticleList();
+    }, [])
     return (
         <div>
             <Card
@@ -122,8 +138,8 @@ const Article = () => {
             </Card>
 
             {/*        */}
-            <Card title={`根据筛选条件共查询到 count 条结果：`}>
-                <Table rowKey="id" columns={columns} dataSource={data} />
+            <Card title={`根据筛选条件共查询到 ${totalCount} 条结果：`}>
+                <Table rowKey="id" columns={columns} dataSource={articleList} />
             </Card>
 
         </div>

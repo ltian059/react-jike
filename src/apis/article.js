@@ -16,4 +16,14 @@ export const submitArticleAPI = (data) => {
         },
         data
     });
-}   
+}
+
+
+//3. 获取文章列表
+export const getArticleListAPI = (params) => {
+    return axios({
+        url: '/v1_0/mp/articles',
+        method: 'GET',
+        params,
+    });
+}
