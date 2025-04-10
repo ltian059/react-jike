@@ -5,9 +5,10 @@ import { Card, Breadcrumb, Form, Button, Radio, DatePicker, Select } from 'antd'
 import { Table, Tag, Space } from 'antd'
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import img404 from '@/assets/error.png'
+import { useChannel } from '@/hooks/useChannel'
 const { Option } = Select
 const { RangePicker } = DatePicker
-
+/* 文章管理页面 */
 const Article = () => {
     // 准备列数据
     const columns = [
@@ -77,7 +78,7 @@ const Article = () => {
             title: 'wkwebview离线化加载h5资源解决方案'
         }
     ]
-
+    const [channels] = useChannel();
     return (
         <div>
             <Card
@@ -89,7 +90,7 @@ const Article = () => {
                 }
                 style={{ marginBottom: 20 }}
             >
-                <Form initialValues={{ status: '', channel_id: 'lucy' }}>
+                <Form initialValues={{ status: '', channel_id: { value: 0, label: '推荐' } }}>
                     <Form.Item label="状态" name="status">
                         <Radio.Group>
                             <Radio value={''}>全部</Radio>
@@ -100,11 +101,10 @@ const Article = () => {
 
                     <Form.Item label="频道" name="channel_id">
                         <Select
+                            options={channels.map(item => ({ value: item.id, label: item.name }))}
                             placeholder="请选择文章频道"
                             style={{ width: 120 }}
                         >
-                            <Option value="jack">Jack</Option>
-                            <Option value="lucy">Lucy</Option>
                         </Select>
                     </Form.Item>
 

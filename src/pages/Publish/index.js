@@ -18,17 +18,10 @@ import Editor from './components/Editor';
 import { Delta } from 'quill';
 import { getChannelsAPI } from '@/apis/article'
 import { submitArticleAPI } from '@/apis/article'
+import { useChannel } from '@/hooks/useChannel'
 
 const Publish = () => {
-    //获取频道列表
-    const [channels, setChannels] = useState([])
-    useEffect(() => {
-        const getChannels = async () => {
-            const res = await getChannelsAPI()
-            setChannels(res.data.channels)
-        }
-        getChannels();
-    }, [])
+    const [channels] = useChannel();
 
     // 提交表单回调
     const handleSubmit = async (values) => {
