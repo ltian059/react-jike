@@ -9,6 +9,7 @@ import { useChannel } from '@/hooks/useChannel'
 import { getArticleListAPI } from '@/apis/article'
 import { useEffect, useState } from 'react'
 import dayjs from 'dayjs'
+import { current } from '@reduxjs/toolkit'
 const { Option } = Select
 const { RangePicker } = DatePicker
 /* 文章管理页面 */
@@ -101,11 +102,11 @@ const Article = () => {
         begin_pubdate: '',
         end_pubdate: '',
         page: 1,
-        per_page: 5,
+        per_page: 10,
     })
 
     const handleFilterArticle = async (values) => {
-        console.log(values);
+        // console.log(values);
         if (!values.date) {
             values.date = [null, null]
         }
@@ -120,11 +121,22 @@ const Article = () => {
         setReqParams(params)
         // 不用调用接口，因为已经通过useEffect调用
     }
-
+    // 点击分页器时的回调函数
+    const onPageChange = (page, pageSize) => {
+        // 更新请求参数，触发useEffect
+        setReqParams({
+            ...reqParams,
+            page,
+            per_page: pageSize,
+        })
+    }
     //获取文章列表
     const [articleList, setArticleList] = useState([]);
     //文章总数
     const [totalCount, setTotalCount] = useState(0);
+    // 分页器配置
+    const [paginationConfig, setPaginationConfig] = useState({});
+
     useEffect(() => {
         const getArticleList = async () => {
             const res = await getArticleListAPI(reqParams);
@@ -133,8 +145,15 @@ const Article = () => {
             setTotalCount(res.data.total_count);
         }
         getArticleList();
+
+        setPaginationConfig({
+            total: totalCount,
+            current: reqParams.page,
+            pageSize: reqParams.per_page,
+            onChange: onPageChange,
+        })
         // 依赖项，当reqParams变化时，重新调用getArticleList
-    }, [reqParams])
+    }, [reqParams, totalCount])
 
     return (
         <div>
@@ -180,7 +199,7 @@ const Article = () => {
 
             {/*        */}
             <Card title={`根据筛选条件共查询到 ${totalCount} 条结果：`}>
-                <Table rowKey="id" columns={columns} dataSource={articleList} />
+                <Table rowKey="id" columns={columns} dataSource={articleList} pagination={paginationConfig} />
             </Card>
 
         </div>
