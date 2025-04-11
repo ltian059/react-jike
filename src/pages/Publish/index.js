@@ -16,10 +16,10 @@ import './index.scss'
 import { useEffect, useRef, useState } from 'react';
 import Editor from './components/Editor';
 import { Delta } from 'quill';
-import { getArticleByIdAPI, getChannelsAPI } from '@/apis/article'
+import { getArticleByIdAPI, getChannelsAPI, updateArticleAPI } from '@/apis/article'
 import { submitArticleAPI } from '@/apis/article'
 import { useChannel } from '@/hooks/useChannel'
-
+import dayjs from 'dayjs'
 const Publish = () => {
     //实现编辑文字数据回显
     const [searchParams] = useSearchParams();
@@ -79,24 +79,56 @@ const Publish = () => {
         }
         //按照接口文档格式，处理表单数据
         const { title, channel_id, content } = values;
-        const formData = {
-            title,
-            content: JSON.stringify(content),
-            cover: {
-                type: radioValue,
-                images: fileList.map(item => item.response.data.url),
-            },
-            channel_id,
-        }
-        console.log('Data to submit:', formData);
-        //调用接口提交表单
-        try {
-            const res = await submitArticleAPI(formData);
-            console.log(res);
-            //发布成功后，得到文章在服务器中的id
-            message.success('发布成功');
-        } catch (error) {
-            console.log(error);
+        if (!id) {
+            //这里的formData是新增文章时的格式，编辑文章时，由于格式有变化，需要重新按照接口要求封装
+            const formData = {
+                title,
+                content: JSON.stringify(content),
+                cover: {
+                    type: radioValue,
+                    images: fileList.map(item => item.response.data.url),
+                },
+                channel_id,
+            }
+            console.log('新增文章');
+            //新增文章
+            //调用接口提交表单
+            try {
+                const res = await submitArticleAPI(formData);
+                console.log(res);
+                //发布成功后，得到文章在服务器中的id
+                message.success('发布成功');
+            } catch (error) {
+                console.log(error);
+            }
+        } else {
+            //编辑文章
+            // console.log(values);
+            //新增的图片和编辑时回显的图标数据格式不一样，需要重新封装
+            const { content, type } = values;
+            const formData = {
+                ...values,
+                content: JSON.stringify(content),
+                cover: {
+                    type,
+                    images: fileList.map(item => {
+                        if (item.response) {
+                            return item.response.data.url;
+                        } else {
+                            return item.url;
+                        }
+                    })
+                },
+                // pub_date: dayjs().format('YYYY-MM-DD HH:mm:ss')
+            }
+            console.log('更新文章');
+            try {
+                // console.log(formData);
+                const res = await updateArticleAPI(id, formData);
+                message.success('更新成功');
+            } catch (error) {
+                console.log(error);
+            }
         }
     }
 

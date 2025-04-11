@@ -43,3 +43,15 @@ export const getArticleByIdAPI = (id) => {
         method: 'GET',
     });
 }
+
+//6. 更新文章
+export const updateArticleAPI = (id, data) => {
+    return axios({
+        url: `/v1_0/mp/articles/${id}`,
+        method: 'PUT',
+        params: {
+            draft: false
+        },
+        data
+    });
+}
