@@ -24,9 +24,11 @@ const Publish = () => {
     //实现编辑文字数据回显
     const [searchParams] = useSearchParams();
     const [form] = Form.useForm();
+    const [id, setId] = useState(null);
     useEffect(() => {
         const id = searchParams.get('id');
         if (id) {
+            setId(id);
             const getArticle = async () => {
                 const res = await getArticleByIdAPI(id);
                 console.log(res);
@@ -92,7 +94,6 @@ const Publish = () => {
             const res = await submitArticleAPI(formData);
             console.log(res);
             //发布成功后，得到文章在服务器中的id
-            const id = res.data.id;
             message.success('发布成功');
         } catch (error) {
             console.log(error);
@@ -150,7 +151,7 @@ const Publish = () => {
                 title={
                     <Breadcrumb items={[
                         { title: <Link to={'/'}>首页</Link> },
-                        { title: '发布文章' },
+                        { title: id ? '编辑文章' : '发布文章' },
                     ]}
                     />
                 }
