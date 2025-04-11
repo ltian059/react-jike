@@ -27,3 +27,11 @@ export const getArticleListAPI = (params) => {
         params,
     });
 }
+
+//4. 删除文章
+export const deleteArticleAPI = (id) => {
+    return axios({
+        url: `/v1_0/mp/articles/${id}`,
+        method: 'DELETE',
+    });
+}

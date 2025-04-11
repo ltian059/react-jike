@@ -1,12 +1,12 @@
-import { Link } from 'react-router'
-import { Card, Breadcrumb, Form, Button, Radio, DatePicker, Select } from 'antd'
+import { Link, useNavigate } from 'react-router'
+import { Card, Breadcrumb, Form, Button, Radio, DatePicker, Select, Popconfirm, message } from 'antd'
 
 // 导入资源
 import { Table, Tag, Space } from 'antd'
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import img404 from '@/assets/error.png'
 import { useChannel } from '@/hooks/useChannel'
-import { getArticleListAPI } from '@/apis/article'
+import { deleteArticleAPI, getArticleListAPI } from '@/apis/article'
 import { useEffect, useState } from 'react'
 import dayjs from 'dayjs'
 import { current } from '@reduxjs/toolkit'
@@ -14,6 +14,7 @@ const { Option } = Select
 const { RangePicker } = DatePicker
 /* 文章管理页面 */
 const Article = () => {
+    const navigate = useNavigate();
     //枚举文章状态
     const statusEnum = {
         0: <Tag color='warning'>草稿</Tag>,
@@ -65,18 +66,52 @@ const Article = () => {
             render: data => {
                 return (
                     <Space size="middle">
-                        <Button type="primary" shape="circle" icon={<EditOutlined />} />
-                        <Button
-                            type="primary"
-                            danger
-                            shape="circle"
-                            icon={<DeleteOutlined />}
-                        />
+
+                        <Button type="primary" shape="circle" icon={<EditOutlined />} onClick={() => handleEdit(data)} />
+                        <Popconfirm
+                            title="删除文章"
+                            description="您确定要删除这篇文章吗"
+                            onConfirm={() => handleDelete(data)}
+                            okText="Yes"
+                            cancelText="No"
+                        >
+                            <Button
+                                type="primary"
+                                danger
+                                shape="circle"
+                                icon={<DeleteOutlined />}
+                            />
+                        </Popconfirm>
                     </Space>
                 )
             }
         }
     ]
+    const handleEdit = (data) => {
+        navigate(`/publish/?id=${data.id}`);
+    }
+    // 删除文章
+    const handleDelete = async (data) => {
+        console.log(data);
+        // 调用删除接口
+        const res = await deleteArticleAPI(data.id);
+        console.log(res);
+        //提示用户
+        message.success('删除成功');
+        //修改依赖项，触发useEffect
+        setTimeout(() => {
+            if (reqParams.page > 1 && articleList.length === 1) {
+                setReqParams({
+                    ...reqParams,
+                    page: reqParams.page - 1,
+                })
+            } else {
+                setReqParams({
+                    ...reqParams,
+                })
+            }
+        }, 1000)
+    }
     // 准备表格body数据
     const data = [
         {
