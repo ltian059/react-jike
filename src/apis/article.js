@@ -35,3 +35,11 @@ export const deleteArticleAPI = (id) => {
         method: 'DELETE',
     });
 }
+
+//5. 获取文章详情
+export const getArticleByIdAPI = (id) => {
+    return axios({
+        url: `/v1_0/mp/articles/${id}`,
+        method: 'GET',
+    });
+}

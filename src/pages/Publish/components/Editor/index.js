@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import Quill from 'quill';
+import Quill, { Delta } from 'quill';
 import './index.scss'
 import 'quill/dist/quill.snow.css'
 // Editor is an uncontrolled React component
@@ -44,8 +44,16 @@ const Editor =
         useEffect(() => {
             const quill = quillRef.current;
             if (quill && value) {
-                if (JSON.stringify(value) !== JSON.stringify(quill.getContents()))
-                    quill.setContents(value);
+                if (typeof value === 'string') {
+                    const delta = quill.clipboard.convert({ html: value })
+                    quill.setContents(delta, 'silent')
+                }
+                else {
+                    if (JSON.stringify(value) !== JSON.stringify(quill.getContents())) {
+                        console.log(typeof value);
+                        quill.setContents(value);
+                    }
+                }
             }
         }, [value]);
 

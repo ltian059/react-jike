@@ -11,18 +11,59 @@ import {
     message
 } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import './index.scss'
 import { useEffect, useRef, useState } from 'react';
 import Editor from './components/Editor';
 import { Delta } from 'quill';
-import { getChannelsAPI } from '@/apis/article'
+import { getArticleByIdAPI, getChannelsAPI } from '@/apis/article'
 import { submitArticleAPI } from '@/apis/article'
 import { useChannel } from '@/hooks/useChannel'
 
 const Publish = () => {
+    //实现编辑文字数据回显
+    const [searchParams] = useSearchParams();
+    const [form] = Form.useForm();
+    useEffect(() => {
+        const id = searchParams.get('id');
+        if (id) {
+            const getArticle = async () => {
+                const res = await getArticleByIdAPI(id);
+                console.log(res);
+                //调用Form组件的setFieldsValue方法，设置表单数据
+                const data = res.data;
+                // 创建一个新的对象来存储处理后的数据
+                const processedData = {};
+                Object.keys(data).forEach(key => {
+                    if (key === 'content') {
+                        try {
+                            // 尝试解析 JSON
+                            const parsedContent = JSON.parse(data[key]);
+                            // 检查是否是 Delta 格式（包含 ops 数组）
+                            if (parsedContent && Array.isArray(parsedContent.ops)) {
+                                processedData[key] = new Delta(parsedContent);
+                            } else {
+                                processedData[key] = data[key];
+                            }
+                        } catch (e) {
+                            // 如果不是有效的 JSON，则直接使用原始内容
+                            processedData[key] = data[key];
+                        }
+                    } else if (key === 'cover') {
+                        processedData.type = data[key].type;
+                        setFileList(data[key].images.map(item => ({ url: item })));
+                    } else {
+                        processedData[key] = data[key];
+                    }
+                });
+                // 一次性设置所有字段
+                form.setFieldsValue(processedData);
+                setRadioValue(processedData.type);
+            }
+            getArticle();
+        }
+    }, [searchParams, form]);
     const [channels] = useChannel();
-
     // 提交表单回调
     const handleSubmit = async (values) => {
         //校验封面类型是否符合要求
@@ -58,18 +99,20 @@ const Publish = () => {
         }
     }
 
-    const initialContent = new Delta()
-        .insert('Hello')
-        .insert('\n', { header: 1 })
-        .insert('Some ')
-        .insert('initial', { bold: true })
-        .insert(' ')
-        .insert('content', { underline: true })
-        .insert('\n');
+    // const initialContent = new Delta()
+    //     .insert('Hello')
+    //     .insert('\n', { header: 1 })
+    //     .insert('Some ')
+    //     .insert('initial', { bold: true })
+    //     .insert(' ')
+    //     .insert('content', { underline: true })
+    //     .insert('\n');
+
     // 上传图片回调
     const [fileList, setFileList] = useState([]);
     const handleUploadChange = (info) => {
         // console.log(info);
+        setFileList(info.fileList); //这里必须双向绑定，否则无法上传图片
         if (info.file.status === 'error') {
             message.error(info.file.response.message);
         }
@@ -84,19 +127,23 @@ const Publish = () => {
     // 控制封面图片类型：单图1、三图3、无图0
     const [radioValue, setRadioValue] = useState(0);
     const uploadRef = useRef();
-    useEffect(() => {
-        if (radioValue === 0) {
+
+    const onTypeChange = (e) => {
+        const val = +e.target.value;
+        setRadioValue(val);  // 更新 state
+        if (val === 0) {
             setFileList([]);
         }
-    }, [radioValue]);
-    const onTypeChange = (e) => {
-        setRadioValue(+e.target.value);
+        else if (fileList.length > 0 && val === 1) {
+            setFileList([fileList[fileList.length - 1]]);
+        }
     }
     // 预览图片
     const handlePreview = (file) => {
         // 打开新页面预览图片
         window.open(file.response.data.url);
     }
+
     return (
         <div className="publish">
             <Card
@@ -109,6 +156,7 @@ const Publish = () => {
                 }
             >
                 <Form
+                    form={form}
                     labelCol={{ span: 4 }}
                     wrapperCol={{ span: 16 }}
                     initialValues={{ type: radioValue }}
@@ -135,8 +183,8 @@ const Publish = () => {
                     </Form.Item>
 
                     <Form.Item label="封面">
-                        <Form.Item name="type" onChange={onTypeChange}>
-                            <Radio.Group>
+                        <Form.Item name="type">
+                            <Radio.Group onChange={onTypeChange}>
                                 <Radio value={1}>单图</Radio>
                                 <Radio value={3}>三图</Radio>
                                 <Radio value={0}>无图</Radio>
@@ -155,12 +203,12 @@ const Publish = () => {
                                 maxCount={radioValue}
                                 onPreview={handlePreview}
                                 onChange={handleUploadChange}
+                                fileList={fileList}
                             >
                                 <div style={{ marginTop: 8 }}>
                                     <PlusOutlined />
                                 </div>
                             </Upload>
-
                         }
                     </Form.Item>
 
@@ -168,7 +216,7 @@ const Publish = () => {
                         label="内容"
                         rules={[{ required: true, message: '请输入文章内容' }]}
                         name="content"
-                        initialValue={initialContent}
+
                     >
                         {/* 富文本编辑器设置。它不是受控组件，要在Form.Item中使用需要进行改造 */}
                         <Editor
