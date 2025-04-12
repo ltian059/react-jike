@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import Quill, { Delta } from 'quill';
+import Quill from 'quill';
 import './index.scss'
 import 'quill/dist/quill.snow.css'
 // Editor is an uncontrolled React component
